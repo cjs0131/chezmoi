@@ -1,0 +1,38 @@
+#!/bin/bash
+
+DATA_FILE="/tmp/areacodes/us-area-code-cities.csv"
+FORMATTED_FILE="/tmp/areacodes_formatted.txt"
+
+# Download data if needed
+if [[ ! -f "$DATA_FILE" ]]; then
+    curl -sL "https://raw.githubusercontent.com/ravisorg/Area-Code-Geolocation-Database/master/us-area-code-cities.csv" -o "$DATA_FILE"
+fi
+
+if [[ ! -f "$DATA_FILE" ]]; then
+    echo "Error: Could not find data file"
+    exit 1
+fi
+
+# Build formatted list: "201 - Bayonne, New Jersey"
+if [[ ! -f "$FORMATTED_FILE" ]]; then
+    awk -F',' '{print $1 " - " $2 ", " $3}' "$DATA_FILE" | sort -u > "$FORMATTED_FILE"
+fi
+
+# Check if running in a terminal
+if [[ -t 1 ]]; then
+    # Interactive terminal - use fzf
+    if [[ $# -eq 1 ]]; then
+        fzf --query="$1" < "$FORMATTED_FILE"
+    else
+        fzf < "$FORMATTED_FILE"
+    fi
+else
+    # Not a terminal - just grep and show
+    if [[ $# -eq 1 ]]; then
+        grep -i "$1" "$FORMATTED_FILE" | head -20
+    else
+        echo "Usage: ac <search_term>"
+        echo "  Search for area codes by code, city, or state"
+        echo "  Run in terminal for interactive fuzzy search"
+    fi
+fi
