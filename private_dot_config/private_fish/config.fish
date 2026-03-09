@@ -7,6 +7,7 @@ end
 
 alias sai='sudo apt install'
 alias sau='sudo apt update'
+alias sauu='sudo apt upgrade'
 alias sar='sudo apt remove'
 alias sas='sudo apt search'
 alias ssh357='ssh cjs@100.72.181.118'
@@ -15,6 +16,7 @@ alias c='clear'
 alias ..='cd ..'
 alias ....='cd ../..'
 alias fzf='fzf --preview="cat {}"'
+alias bat='batcat'
 
 # opencode
 fish_add_path /home/charlie/.opencode/bin
