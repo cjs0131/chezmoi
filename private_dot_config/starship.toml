@@ -28,7 +28,8 @@ $cmd_duration\
 $line_break\
 $character"""
 
-palette = 'catppuccin_frappe'
+palette = 'catppuccin_macchiato'
+
 
 [os]
 disabled = false
