@@ -2,7 +2,6 @@
 
 
     # Commands to run in interactive sessions can go here
-fastfetch
 end
 
 alias sai='sudo apt install'
@@ -17,7 +16,8 @@ alias ..='cd ..'
 alias ....='cd ../..'
 alias fzf='fzf --preview="cat {}"'
 alias bat='batcat'
-alias chezpush='chezmoi cd && gitacp'
+alias chezcd="chezmoi cd"
+alias chezedit='chezmoi edit'
 starship init fish | source
 # opencode
 fish_add_path /home/charlie/.opencode/bin

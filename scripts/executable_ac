@@ -3,6 +3,8 @@
 DATA_FILE="/tmp/areacodes/us-area-code-cities.csv"
 FORMATTED_FILE="/tmp/areacodes_formatted.txt"
 
+mkdir -p "$(dirname "$DATA_FILE")"
+
 # Download data if needed
 if [[ ! -f "$DATA_FILE" ]]; then
     curl -sL "https://raw.githubusercontent.com/ravisorg/Area-Code-Geolocation-Database/master/us-area-code-cities.csv" -o "$DATA_FILE"
