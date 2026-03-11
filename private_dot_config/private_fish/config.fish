@@ -4,6 +4,8 @@
     # Commands to run in interactive sessions can go here
 end
 
+
+
 alias sai='sudo apt install'
 alias sau='sudo apt update'
 alias sauu='sudo apt upgrade'
