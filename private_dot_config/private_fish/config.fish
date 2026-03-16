@@ -21,5 +21,6 @@ alias bat='batcat'
 alias chezcd="chezmoi cd"
 alias chezedit='chezmoi edit'
 starship init fish | source
+zoxide init fish | source
 # opencode
 fish_add_path /home/charlie/.opencode/bin
