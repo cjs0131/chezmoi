@@ -16,7 +16,6 @@ alias ff='fastfetch'
 alias c='clear'
 alias ..='cd ..'
 alias ....='cd ../..'
-alias cdl='cd $argv && ls'
 alias fzf='fzf --preview="cat {}"'
 alias bat='batcat'
 alias chezcd="chezmoi cd"
