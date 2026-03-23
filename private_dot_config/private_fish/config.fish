@@ -3,22 +3,22 @@ if status is-interactive
 end
 
 if command -q paru
-    alias install='paru -S'
+    alias get='paru -S'
     alias update='paru -Syu'
     alias remove='paru -Rs'
     alias search='paru -Ss'
 else if command -q pacman
-    alias install='sudo pacman -S'
+    alias get='sudo pacman -S'
     alias update='sudo pacman -Syu'
     alias remove='sudo pacman -Rs'
     alias search='pacman -Ss'
 else if command -q zypper
-    alias install='sudo zypper install --no-recommends'
+    alias get='sudo zypper install --no-recommends'
     alias update='sudo zypper dup'
     alias remove='sudo zypper remove --clean-deps'
     alias search='zypper search'
 else if command -q apt
-    alias install='sudo apt install'
+    alias get='sudo apt install'
     alias update='sudo apt update && sudo apt upgrade'
     alias remove='sudo apt remove'
     alias search='apt search'
@@ -35,7 +35,7 @@ alias c='clear'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
-alias fzf='fzf --preview="bat {}"'
+alias fzf='command fzf --preview="bat {}"'
 
 # chezmoi
 alias chcd='chezmoi cd'
@@ -47,4 +47,7 @@ zoxide init --cmd cd fish | source
 
 # opencode
 fish_add_path /home/charlie/.opencode/bin
-eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv fish)
+
+if command -q brew
+    eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv fish)
+end
