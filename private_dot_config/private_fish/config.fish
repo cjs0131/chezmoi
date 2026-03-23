@@ -48,6 +48,11 @@ zoxide init --cmd cd fish | source
 # opencode
 fish_add_path /home/charlie/.opencode/bin
 
+# user paths
+fish_add_path ~/bin
+fish_add_path ~/.local/bin
+fish_add_path ~/scripts
+
 if command -q brew
     eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv fish)
 end
