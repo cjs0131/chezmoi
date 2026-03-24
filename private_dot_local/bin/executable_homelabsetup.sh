@@ -6,13 +6,13 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
-NC='\033[m'
+NC='\033[0m'
 BOLD='\033[1m'
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DOCKER_DIR="$SCRIPT_DIR"
 
-# ----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 #  Helper functions
 # ----------------------------------------------------------------------
 print_header() {
@@ -47,7 +47,6 @@ ensure_curl() {
         return 0
     fi
     print_warning "curl not found. Attempting to install curl..."
-    # Detect package manager and install curl
     if command -v apt &>/dev/null; then
         apt update -qq && apt install -y -qq curl
     elif command -v pacman &>/dev/null; then
@@ -64,24 +63,18 @@ ensure_curl() {
 }
 
 # ----------------------------------------------------------------------
-#  Docker installation (universal)
+#  Docker installation (universal, idempotent)
 # ----------------------------------------------------------------------
 install_docker() {
     print_step 1 4 "Installing Docker..."
 
-    if command -v docker &> /dev/null; then
-        print_status "Docker already installed"
+    if command -v docker &>/dev/null && docker compose version &>/dev/null; then
+        print_status "Docker already installed with compose plugin"
         if ! systemctl is-active --quiet docker; then
             print_status "Starting Docker..."
             systemctl start docker
         fi
-        # Ensure compose plugin is available
-        if ! docker compose version &>/dev/null; then
-            print_warning "docker compose plugin missing. Reinstalling Docker..."
-            # Continue with fresh install
-        else
-            return
-        fi
+        return   # <-- Important: only return from function, not exit script
     fi
 
     ensure_curl
@@ -91,11 +84,9 @@ install_docker() {
     sh /tmp/get-docker.sh
     rm -f /tmp/get-docker.sh
 
-    # Start Docker service
     systemctl enable docker
     systemctl start docker
 
-    # Add current user to docker group (if not root)
     if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
         print_status "Adding user $SUDO_USER to docker group..."
         usermod -aG docker "$SUDO_USER"
@@ -145,8 +136,6 @@ select_services() {
     echo -e "\n${BOLD}Monitoring:${NC}"
     echo ""
     toggle_service "Uptime Kuma" "Self-hosted monitoring dashboard" "INSTALL_UPTIME"
-
-    # Tailscale container removed – use host Tailscale instead
 }
 
 # ----------------------------------------------------------------------
@@ -158,8 +147,6 @@ get_config() {
 
     read -p "  Timezone (e.g. America/New_York): " TIMEZONE
     TIMEZONE=${TIMEZONE:-America/New_York}
-
-    # AdGuard password not needed – set on first web login
 }
 
 # ----------------------------------------------------------------------
@@ -212,7 +199,6 @@ setup_services() {
     mkdir -p "$DOCKER_DIR/downloads"
     mkdir -p "$DOCKER_DIR/media/movies" "$DOCKER_DIR/media/tv" "$DOCKER_DIR/media/music"
 
-    # Check for existing compose file
     if [ -f "$DOCKER_DIR/docker-compose.yml" ]; then
         read -p "  docker-compose.yml already exists. Overwrite? [y/N]: " overwrite
         if [[ ! $overwrite =~ ^[Yy]$ ]]; then
@@ -225,7 +211,6 @@ setup_services() {
 services:
 EOF
 
-    # AdGuard Home
     if [ "$INSTALL_ADGUARD" = "1" ]; then
         print_status "Adding AdGuard Home..."
         check_port 53 || true
@@ -249,7 +234,6 @@ EOF
 EOF
     fi
 
-    # Jellyfin
     if [ "$INSTALL_JELLYFIN" = "1" ]; then
         print_status "Adding Jellyfin..."
         check_port 8096 || true
@@ -273,7 +257,6 @@ EOF
 EOF
     fi
 
-    # qBittorrent
     if [ "$INSTALL_QBITTORRENT" = "1" ]; then
         print_status "Adding qBittorrent..."
         check_port 8081 || true
@@ -298,7 +281,6 @@ EOF
 EOF
     fi
 
-    # *arr stack
     if [ "$INSTALL_ARR" = "1" ]; then
         print_status "Adding *arr Stack..."
         mkdir -p "$DOCKER_DIR"/{sonarr,radarr,lidarr,prowlarr}/config
@@ -367,7 +349,6 @@ EOF
 EOF
     fi
 
-    # Nextcloud
     if [ "$INSTALL_NEXTCLOUD" = "1" ]; then
         print_status "Adding Nextcloud..."
         mkdir -p "$DOCKER_DIR/nextcloud/config" "$DOCKER_DIR/nextcloud/data" "$DOCKER_DIR/nextcloud/apps"
@@ -388,7 +369,6 @@ EOF
 EOF
     fi
 
-    # Nginx Proxy Manager
     if [ "$INSTALL_NPM" = "1" ]; then
         print_status "Adding Nginx Proxy Manager..."
         mkdir -p "$DOCKER_DIR/npm/data" "$DOCKER_DIR/npm/letsencrypt"
@@ -412,7 +392,6 @@ EOF
 EOF
     fi
 
-    # Uptime Kuma
     if [ "$INSTALL_UPTIME" = "1" ]; then
         print_status "Adding Uptime Kuma..."
         mkdir -p "$DOCKER_DIR/uptime/data"
@@ -525,8 +504,6 @@ uninstall() {
     read -p "Uninstall Docker as well? [y/N]: " REMOVE_DOCKER
     if [[ $REMOVE_DOCKER =~ ^[Yy]$ ]]; then
         print_status "Removing Docker packages..."
-
-        # Detect package manager and remove Docker packages
         if command -v apt &>/dev/null; then
             apt remove -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin 2>/dev/null || true
             apt autoremove -y
@@ -540,14 +517,11 @@ uninstall() {
         else
             print_warning "Unsupported package manager. Please remove Docker manually."
         fi
-
-        # Optionally remove Docker data directory
-        read -p "Remove Docker data directory (/var/lib/docker)? This will delete all images, containers, and volumes. [y/N]: " REMOVE_DATA
+        read -p "Remove Docker data directory (/var/lib/docker)? [y/N]: " REMOVE_DATA
         if [[ $REMOVE_DATA =~ ^[Yy]$ ]]; then
             rm -rf /var/lib/docker
             print_status "Removed /var/lib/docker"
         fi
-
         print_status "Docker uninstalled"
     fi
 
@@ -582,7 +556,7 @@ main_menu() {
 
 install_and_setup() {
     if [ "$EUID" -ne 0 ]; then
-        echo -e "${RED}Please run with: sudo bash setup.sh${NC}"
+        echo -e "${RED}Please run with: sudo $0${NC}"
         exit 1
     fi
 
@@ -595,4 +569,4 @@ install_and_setup() {
     start_services
 }
 
-main_menu0
+main_menu-
