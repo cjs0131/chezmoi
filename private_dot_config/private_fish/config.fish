@@ -29,7 +29,6 @@ if command -q batcat
     alias bat='batcat'
 end
 
-alias 357='cjs@100.72.181.118'
 alias ff='fastfetch'
 alias c='clear'
 alias ..='cd ..'
