@@ -123,33 +123,70 @@ install_starship() {
   fi
 }
 
-# ── Zoxide (with cargo fallback) ─────────────────────────────────────────────
+# ── Zoxide (always via cargo for correct arch) ───────────────────────────────
 install_zoxide() {
-  echo "→ Installing zoxide..."
-  # Try package manager first
-  case "$PM" in
-    pacman) install_pacman "zoxide" && return 0 ;;
-    brew)   install_brew "zoxide" && return 0 ;;
-    apt)
-      sudo apt install -y zoxide 2>/dev/null && echo "✓ zoxide" && return 0
-      ;;
-    dnf)
-      sudo dnf install -y zoxide 2>/dev/null && echo "✓ zoxide" && return 0
-      ;;
-    zypper)
-      sudo zypper install -y zoxide 2>/dev/null && echo "✓ zoxide" && return 0
-      ;;
-  esac
-
-  # Fallback: cargo istall
-  echo "→ zoxide not in package manager, trying cargo..."
+  echo "→ Installing zoxide via cargo..."
   if ! command -v cargo &>/dev/null; then
-    install_rust || { echo "✗ zoxide (cargo unavailable)"; return 1; }
+    echo "✗ zoxide (cargo not available, skipping)"
+    return 1
   fi
   if cargo install zoxide; then
     echo "✓ zoxide (via cargo)"
   else
     echo "✗ zoxide (cargo install failed)"
+  fi
+}
+
+# ── Zellij (cargo fallback for apt/dnf/zypper) ───────────────────────────────
+install_zellij() {
+  echo "→ Installing zellij..."
+  case "$PM" in
+    pacman) install_pacman "zellj" && return 0 ;;
+    brew)   install_brew "zellij" && return 0 ;;
+  esac
+  # Try package manager first, fall back to cargo
+  case "$PM" in
+    apt)    sudo apt install -y zellij 2>/dev/null && echo "✓ zellij" && return 0 ;;
+    dnf)    sudo dnf install -y zellij 2>/dev/null && echo "✓ zellij" && return 0 ;;
+    zypper) sudo zypper install -y zellij 2>/dev/null && echo "✓ zellij" && return 0 ;;
+  esac
+  echo "→ zellij not in package manager, trying cargo..."
+  if command -v cargo &>/dev/null && cargo install zellij; then
+    echo "✓ zellij (via cargo)"
+  else
+    echo "✗ zellij (all install methods failed)"
+  fi
+}
+
+# ── Lazygit (GitHub binary fallback) ─────────────────────────────────────────
+install_lazygit() {
+  echo "→ Installing lazygit..."
+  case "$PM" in
+    pacman) install_pacman "lazygit" && return 0 ;;
+    brew)   install_brew "lazygit" && return 0 ;;
+    dnf)    sudo dnf install -y lazygit 2>/dev/null && echo "✓ lazygit" && return 0 ;;
+  esac
+  # apt/zypper don't have lazygit — download binary from GitHub
+  echo "→ lazygit not in package manager, downloading binary..."
+  local arch
+  arch=$(uname -m)
+  # Normalize arch names to match GitHub release filenames
+  case "$arch" in
+    x86_64)  arch="x86_64" ;;
+    aarch64) arch="arm64" ;;
+    *)       echo "✗ lazygit (unsupported arch: $arch)"; return 1 ;;
+  esac
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+  local url="https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_Linux_${arch}.tar.gz"
+  if curl -fL --progress-bar "$url" | tar -xz -C "$tmp_dir"; then
+    mkdir -p "$HOME/.local/bin"
+    mv "$tmp_dir/lazygit" "$HOME/.local/bin/lazygit"
+    rm -rf "$tmp_dir"
+    echo "✓ lazygit (via GitHub binary)"
+  else
+    rm -rf "$tmp_dir"
+    echo "✗ lazygit (download failed)"
   fi
 }
 
@@ -167,10 +204,16 @@ install_jetbrains_nerd_font() {
     brew install --cask font-jetbrains-mono-nerd-font && echo "✓ JetBrains Mono Nerd Font (via brew)" && return 0
   fi
 
+  # Ensure unzip is available
+  if ! command -v unzip &>/dev/null; then
+    echo "→ Installing unzip..."
+    install_pkg "unzip"
+  fi
+
   # Everything else: download from Nerd Fonts GitHub releases
   local font_dir="$HOME/.local/share/fonts/JetBrainsMono"
   local tmp_zip
-  tmp_zip=$(mktemp /tmp/JetBrainsMono.XXXXXX.zip)
+  tmp_zip=$(mktemp /tmp/JetBrainsMonoXXXXXX).zip
 
   echo "→ Downloading JetBrains Mono Nerd Font from GitHub..."
   if curl -fL --progress-bar \
@@ -193,18 +236,20 @@ install_jetbrains_nerd_font() {
 
 # ── Tier prompt ───────────────────────────────────────────────────────────────
 echo ""
-echo "┌─────────────────────────────────────────┐"
-echo "│         Select installation tier         │"
-echo "├─────────────────────────────────────────┤"
-echo "│  1) core    fish, btop, htop, neovim,   │"
-echo "│             fzf, starship, zoxide        │"
-echo "│                                          │"
-echo "│  2) full    core + fastfetch, ranger,    │"
-echo "│             zellij, yt-dlp, lazygit      │"
-echo "│                                          │"
-echo "│  3) gaming  full + steam, lutris,        │"
-echo "│             gamemode, mangohud           │"
-echo "└─────────────────────────────────────────┘"
+echo "┌─────────────────────────────────────────────────────┐"
+echo "│            Select installation tier                 │"
+echo "├─────────────────────────────────────────────────────┤"
+echo "│  1) core    │ fish, btop, htop, neovim, fzf,        │"
+echo "│             │ starship, zoxide                      │"
+echo "│             │                                       │"
+echo "│  2) full    │ core + fastfetch, ranger, zellij,     │"
+echo "│             │ yt-dlp, lazygit                       │"
+echo "│             │                                       │"
+echo "│  3) gaming  │ full + steam, lutris,                 │"
+echo "│             │ gamemode, mangohud                    │"
+echo "│             │                                       │"
+echo "│  all tiers  │ rust, cargo, JetBrains Mono Nerd Font │"
+echo "└─────────────────────────────────────────────────────┘"
 echo ""
 read -rp "Enter choice [1/2/3]: " TIER_CHOICE
 
@@ -227,10 +272,13 @@ fi
 echo "→ Using package manager: $PM"
 echo ""
 
+# ── Rust / Cargo (always installed first) ────────────────────────────────────
+install_rust
+
 # ── Install packages (excluding starship and zoxide — handled separately) ─────
 MAIN_PACKAGES=()
 for pkg in "${PACKAGES[@]}"; do
-  if [[ "$pkg" != "starship" && "$pkg" != "zoxide" ]]; then
+  if [[ "$pkg" != "starship" && "$pkg" != "zoxide" && "$pkg" != "zellij" && "$pkg" != "lazygit" ]]; then
     MAIN_PACKAGES+=("$pkg")
   fi
 done
@@ -238,11 +286,18 @@ done
 echo "Installing ${#MAIN_PACKAGES[@]} packages..."
 install_pkg "${MAIN_PACKAGES[@]}"
 
-# ── Starship and zoxide with fallbacks ────────────────────────────────────────
+# ── Tools with custom install logic ──────────────────────────────────────────
 echo ""
 install_starship
 install_zoxide
+
+# Only install zellij/lazygit if they're in the selected tier
+for pkg in "${PACKAGES[@]}"; do
+  [[ "$pkg" == "zellij" ]] && install_zellij
+  [[ "$pkg" == "lazygit" ]] && install_lazygit
+done
+
 install_jetbrains_nerd_font
 
 echo ""
-echo "Done!"n
+echo "Done!"i
