@@ -9,8 +9,8 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-DOCKER_DIR="$SCRIPT_DIR"
+CURRENT_DIR="$(pwd)"
+DOCKER_DIR="$CURRENT_DIR"
 
 # --------------------------------------------------------------------
 #  Helper functions
@@ -652,11 +652,6 @@ main_menu() {
 }
 
 install_and_setup() {
-    if [ "$EUID" -ne 0 ]; then
-        echo -e "${RED}Please run with: sudo $0${NC}"
-        exit 1
-    fi
-
     print_header
     install_docker
     select_services
