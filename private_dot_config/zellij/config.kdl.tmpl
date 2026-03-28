@@ -245,7 +245,7 @@ plugins {
     compact-bar location="zellij:compact-bar"
     configuration location="zellij:configuration"
     filepicker location="zellij:strider" {
-        cwd "{{ .chezmoi.homeDir }}"
+        cwd "/home/charlie"
     }
     plugin-manager location="zellij:plugin-manager"
     session-manager location="zellij:session-manager"
@@ -312,7 +312,7 @@ default_layout "default"
 // The folder in which Zellij will look for themes
 // (Requires restart)
 // 
-theme_dir "{{ .chezmoi.homeDir }}/.config/zellij/themes"
+theme_dir "/home/charlie/.config/zellij/themes"
  
 // Toggle enabling the mouse mode.
 // On certain configurations, or terminals this could

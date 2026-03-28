@@ -173,6 +173,46 @@ install_zellij() {
   done
 }
 
+# ── Asciiquarium dependencies ─────────────────────────────────────────────────
+install_asciiquarium_deps() {
+  echo "→ Installing asciiquarium dependencies..."
+
+  case "$PM" in
+    pacman)
+      # Arch has asciiquarium packaged
+      if install_pacman "asciiquarium" 2>/dev/null; then
+        echo "✓ asciiquarium (via pacman)"
+        return 0
+      fi
+      # Fall back to perl deps
+      install_pacman "perl-curses" "perl-term-animation" && echo "✓ asciiquarium perl deps" && return 0
+      ;;
+    apt)
+      install_apt "libcurses-perl" "libterm-animation-perl" && echo "✓ asciiquarium deps" && return 0
+      ;;
+    dnf)
+      install_dnf "perl-Curses" && echo "✓ Curses perl (Term::Animation may need CPAN)"
+      # Term::Animation often needs CPAN on RHEL-based systems
+      ;;
+    brew)
+      echo "→ asciiquarium on macOS requires manual setup:"
+      echo "  brew install cpanminus && cpan Term::Animation"
+      ;;
+    zypper)
+      install_zypper "perl-Curses" && echo "✓ Curses perl"
+      ;;
+  esac
+
+  # Fallback: install Term::Animation via CPAN if available
+  if command -v cpan &>/dev/null; then
+    echo "→ Installing Term::Animation via CPAN..."
+    cpan -T Term::Animation 2>/dev/null && echo "✓ Term::Animation (via CPAN)" || echo "✗ Term::Animation (CPAN failed)"
+  else
+    echo "✗ asciiquarium: no CPAN available"
+    return 1
+  fi
+}
+
 # ── Lazygit (GitHub binary fallback) ─────────────────────────────────────────
 install_lazygit() {
   echo "→ Installing lazygit..."
@@ -272,6 +312,7 @@ echo "│  3) gaming  │ full + steam, lutris,                 │"
 echo "│             │ gamemode, mangohud                    │"
 echo "│             │                                       │"
 echo "│  all tiers  │ rust, cargo, JetBrains Mono Nerd Font │"
+echo "│             │ asciiquarium deps                       │"
 echo "└─────────────────────────────────────────────────────┘"
 echo ""
 read -rp "Enter choice [1/2/3]: " TIER_CHOICE
@@ -327,6 +368,7 @@ for pkg in "${PACKAGES[@]}"; do
 done
 
 install_jetbrains_nerd_font
+install_asciiquarium_deps
 
 # ── Headless server setup ─────────────────────────────────────────────────────
 echo ""
