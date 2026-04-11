@@ -1,5 +1,5 @@
 layout {
-    cwd ""
+    cwd "/home/charlie"
     tab name="Tab #1" focus=true hide_floating_panes=true {
         pane size=1 borderless=true {
             plugin location="zellij:tab-bar"
@@ -9,10 +9,25 @@ layout {
                 args "-O" "/usr/bin/ranger"
                 start_suspended true
             }
-            pane
+            pane focus=true size="50%"
         }
         pane command="btop" size="65%" {
             start_suspended true
+        }
+        pane size=1 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    tab name="Tab #2" hide_floating_panes=true {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        pane split_direction="vertical" {
+            pane size="50%"
+            pane command="/usr/bin/perl" size="50%" {
+                args "/home/charlie/.local/bin/asciiquarium"
+                start_suspended true
+            }
         }
         pane size=1 borderless=true {
             plugin location="zellij:status-bar"
@@ -30,7 +45,7 @@ layout {
     swap_tiled_layout name="vertical" {
         tab max_panes=5 {
             pane size=1 borderless=true {
-                plugin location="tab-bar"
+                plugin location="zellij:tab-bar"
             }
             pane {
                 pane split_direction="vertical" {
@@ -41,12 +56,12 @@ layout {
                 }
             }
             pane size=1 borderless=true {
-                plugin location="status-bar"
+                plugin location="zellij:status-bar"
             }
         }
         tab max_panes=8 {
             pane size=1 borderless=true {
-                plugin location="tab-bar"
+                plugin location="zellij:tab-bar"
             }
             pane {
                 pane split_direction="vertical" {
@@ -62,12 +77,12 @@ layout {
                 }
             }
             pane size=1 borderless=true {
-                plugin location="status-bar"
+                plugin location="zellij:status-bar"
             }
         }
         tab max_panes=12 {
             pane size=1 borderless=true {
-                plugin location="tab-bar"
+                plugin location="zellij:tab-bar"
             }
             pane {
                 pane split_direction="vertical" {
@@ -89,26 +104,26 @@ layout {
                 }
             }
             pane size=1 borderless=true {
-                plugin location="status-bar"
+                plugin location="zellij:status-bar"
             }
         }
     }
     swap_tiled_layout name="horizontal" {
         tab max_panes=4 {
             pane size=1 borderless=true {
-                plugin location="tab-bar"
+                plugin location="zellij:tab-bar"
             }
             pane {
                 pane
                 pane
             }
             pane size=1 borderless=true {
-                plugin location="status-bar"
+                plugin location="zellij:status-bar"
             }
         }
         tab max_panes=8 {
             pane size=1 borderless=true {
-                plugin location="tab-bar"
+                plugin location="zellij:tab-bar"
             }
             pane {
                 pane {
@@ -124,12 +139,12 @@ layout {
                 }
             }
             pane size=1 borderless=true {
-                plugin location="status-bar"
+                plugin location="zellij:status-bar"
             }
         }
         tab max_panes=12 {
             pane size=1 borderless=true {
-                plugin location="tab-bar"
+                plugin location="zellij:tab-bar"
             }
             pane {
                 pane {
@@ -151,14 +166,14 @@ layout {
                 }
             }
             pane size=1 borderless=true {
-                plugin location="status-bar"
+                plugin location="zellij:status-bar"
             }
         }
     }
     swap_tiled_layout name="stacked" {
         tab min_panes=5 {
             pane size=1 borderless=true {
-                plugin location="tab-bar"
+                plugin location="zellij:tab-bar"
             }
             pane {
                 pane split_direction="vertical" {
@@ -169,7 +184,7 @@ layout {
                 }
             }
             pane size=1 borderless=true {
-                plugin location="status-bar"
+                plugin location="zellij:status-bar"
             }
         }
     }
