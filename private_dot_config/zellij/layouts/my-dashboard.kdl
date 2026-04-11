@@ -9,10 +9,7 @@ layout {
                 args "-O" "/usr/bin/ranger"
                 start_suspended true
             }
-            pane command="zellij" cwd="scripts" focus=true size="50%" {
-                args "action" "dump-layout"
-                start_suspended true
-            }
+            pane
         }
         pane command="btop" size="65%" {
             start_suspended true
